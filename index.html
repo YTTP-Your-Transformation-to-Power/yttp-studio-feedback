@@ -562,13 +562,21 @@
     return '<div class="ticker-item">' + item.repeat(4).trim() + '</div>';
   }
 
+  // Slugs, die selbst die im Banner beworbene Location sind: denen wird der
+  // eigene "Opening Soon"-Banner nicht angezeigt, das wäre widersinnig, wenn
+  // man gerade dort Feedback abgibt. koeln-belgisches-strength ist die im
+  // Köln-Banner beworbene Strength-Location selbst.
+  const TICKER_SELF_EXCLUDE = ['koeln-belgisches-strength'];
+
   function setupTicker(slug) {
     const wrap = document.getElementById('ticker-wrap');
     const track = document.getElementById('ticker-track');
     const lower = (slug || '').toLowerCase();
     let segments = null;
 
-    if (lower.startsWith('berlin-')) {
+    if (TICKER_SELF_EXCLUDE.includes(lower)) {
+      segments = null;
+    } else if (lower.startsWith('berlin-')) {
       segments = ['Opening Soon', "YTTP Strength", "Berlin Ku'damm"];
     } else if (lower.startsWith('koeln-')) {
       segments = ['Opening Soon', 'YTTP Strength', 'Belgisches Viertel', '50674 Köln'];
