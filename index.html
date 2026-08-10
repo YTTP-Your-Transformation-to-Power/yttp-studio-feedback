@@ -694,9 +694,16 @@
       // Lehrer-Zuordnung anstoßen (ordnet den Feedback-Eintrag dem zuletzt
       // beendeten Kurs an diesem Studio zu). Läuft serverseitig in einer
       // Supabase Edge Function, bewusst nicht abgewartet: das Gäste-Erlebnis
-      // darf nicht von bSport-Erreichbarkeit abhängen.
+      // darf nicht von bSport-Erreichbarkeit abhängen. keepalive: true ist
+      // hier notwendig, nicht optional: ohne dieses Flag bricht der Browser
+      // den Request ab, sobald die Seite verlassen oder der Tab geschlossen
+      // wird, was direkt nach der Dankeseite eines QR-Code-Formulars sehr
+      // häufig sofort passiert. Dadurch kam die Zuordnung nie beim Server an
+      // und attribution_status blieb dauerhaft NULL statt eines der vier
+      // regulären Werte.
       fetch(`${SUPABASE_URL}/functions/v1/attribute-teacher`, {
         method: 'POST',
+        keepalive: true,
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
