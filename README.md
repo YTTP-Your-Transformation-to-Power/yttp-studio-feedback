@@ -36,9 +36,10 @@ Gelesen von:  PayScale Dashboard (Service Key, inkl. Kommentare)
 
 - **Deploy:** Push auf `main` veröffentlicht `index.html` über GitHub Pages
   (Legacy Build, Branch `main`, Wurzel). Kein Build-Schritt.
-- **DNS:** `feedback.yttp.de` soll ein CNAME auf `yttp-your-transformation-to-power.github.io` sein.
-  Am 29. September 2026 zeigte er noch auf `techniktim17.github.io` (Umzug des Repos),
-  die Umstellung beim DNS-Anbieter war offen.
+- **DNS:** bei IONOS. `feedback.yttp.de` ist ein CNAME auf `yttp-your-transformation-to-power.github.io`.
+  `yttp.de` ist in der GitHub Organisation als Pages Domain verifiziert (TXT Eintrag
+  `_github-pages-challenge-YTTP-Your-Transformation-to-Power`, seit 29. September 2026).
+  Den TXT Eintrag nie löschen, sonst fällt die Verifizierung weg.
 - **Edge Function:** wird nicht automatisch aus dem Repo deployt. Änderungen hier
   committen und über Supabase deployen (MCP `deploy_edge_function` oder
   `supabase functions deploy attribute-teacher`). Danach prüfen, dass Repo und
