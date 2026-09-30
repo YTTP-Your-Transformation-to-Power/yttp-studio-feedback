@@ -48,7 +48,7 @@ Gelesen von:  PayScale Dashboard (Service Key, inkl. Kommentare)
 
 ## Studios
 
-Aktueller Bestand in der Tabelle `studios`, Stand 29. September 2026:
+Aktueller Bestand in der Tabelle `studios`, Stand 30. September 2026:
 
 | Slug | bsport Company | bsport Venue |
 |---|---|---|
@@ -58,6 +58,7 @@ Aktueller Bestand in der Tabelle `studios`, Stand 29. September 2026:
 | `berlin-rberger-ref` | 3984 | 13580 |
 | `duesseldorf-bilk-ref` | 5546 | 21091 |
 | `hamburg-nstadt-ref` | 5547 | 18529 |
+| `hamburg-ottensen-ref` | 5547 | 22790 |
 | `koeln-belgisches-mat` | 2562 | 9160 |
 | `koeln-belgisches-ref` | 2562 | 12525 |
 | `koeln-belgisches-strength` | 2562 | 19028 |

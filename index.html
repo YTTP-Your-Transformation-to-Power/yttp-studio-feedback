@@ -552,35 +552,36 @@
     });
   }
 
-  // Ticker-Banner ist je Stadt unterschiedlich (nicht je einzelnem Studio):
-  // Berlin bewirbt YTTP Strength Ku'damm, Köln bewirbt YTTP Strength Belgisches
-  // Viertel. Hamburg (und alles Unbekannte) zeigt aktuell keinen Banner, bis es
-  // einen eigenen Inhalt dafür gibt.
-  function buildTickerHTML(segments) {
-    const dot = '<span class="ticker-dot"></span>';
-    const item = segments.join(' ' + dot + ' ') + ' ' + dot + ' ';
-    return '<div class="ticker-item">' + item.repeat(4).trim() + '</div>';
+  // Ticker-Banner "Opening Soon": welche Studios welches Opening bewerben.
+  // Ein Eintrag gilt entweder fuer alle Slugs einer Stadt (prefix) oder fuer
+  // einzelne Slugs (slugs). Der erste passende Eintrag gewinnt. Ein Studio, das
+  // selbst die beworbene Location ist, gehoert nicht in die Liste, das waere
+  // widersinnig, wenn man gerade dort Feedback abgibt. Alles ohne Treffer zeigt
+  // keinen Banner.
+  const TICKER_BANNERS = [
+    { prefix: 'berlin-', segments: ['Opening Soon', 'YTTP Strength', "Berlin Ku'damm"] },
+    { prefix: 'koeln-', segments: ['Opening Soon', 'YTTP Strength & Reformer', 'Ehrenfeld', 'Köln'] },
+    { slugs: ['hamburg-nstadt-ref'], segments: ['Opening Soon', 'YTTP Reformer', 'Ottensen', 'Hamburg'] },
+  ];
+
+  function escapeHTML(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // Slugs, die selbst die im Banner beworbene Location sind: denen wird der
-  // eigene "Opening Soon"-Banner nicht angezeigt, das wäre widersinnig, wenn
-  // man gerade dort Feedback abgibt. koeln-belgisches-strength ist die im
-  // Köln-Banner beworbene Strength-Location selbst.
-  const TICKER_SELF_EXCLUDE = ['koeln-belgisches-strength'];
+  function buildTickerHTML(segments) {
+    const dot = '<span class="ticker-dot"></span>';
+    const item = segments.map(escapeHTML).join(' ' + dot + ' ') + ' ' + dot + ' ';
+    return '<div class="ticker-item">' + item.repeat(4).trim() + '</div>';
+  }
 
   function setupTicker(slug) {
     const wrap = document.getElementById('ticker-wrap');
     const track = document.getElementById('ticker-track');
     const lower = (slug || '').toLowerCase();
-    let segments = null;
-
-    if (TICKER_SELF_EXCLUDE.includes(lower)) {
-      segments = null;
-    } else if (lower.startsWith('berlin-')) {
-      segments = ['Opening Soon', "YTTP Strength", "Berlin Ku'damm"];
-    } else if (lower.startsWith('koeln-')) {
-      segments = ['Opening Soon', 'YTTP Strength', 'Belgisches Viertel', '50674 Köln'];
-    }
+    const banner = TICKER_BANNERS.find((b) =>
+      (b.prefix && lower.startsWith(b.prefix)) || (b.slugs && b.slugs.includes(lower))
+    );
+    const segments = banner ? banner.segments : null;
 
     if (segments) {
       track.innerHTML = buildTickerHTML(segments);

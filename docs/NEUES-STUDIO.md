@@ -75,9 +75,10 @@ mehrfach still beschädigt. Aus dem Repo herunterladen oder lokal erzeugen.
 Beides hängt am Slug und ist fest im Code:
 
 - Englisch bekommen nur Slugs mit `berlin-`, alle anderen Deutsch.
-- Der Banner "Opening Soon" steht in `setupTicker()` für `berlin-` und `koeln-`.
-  Das beworbene Studio selbst steht in `TICKER_SELF_EXCLUDE`, damit es nicht für
-  sich selbst wirbt.
+- Der Banner "Opening Soon" steht in der Liste `TICKER_BANNERS`: pro Eintrag
+  entweder alle Slugs einer Stadt (`prefix`) oder einzelne Slugs (`slugs`). Das
+  beworbene Studio selbst gehört nicht hinein, und sobald es eröffnet ist, fliegt
+  sein Eintrag raus.
 
 Bei einer neuen Stadt oder einem neuen Opening dort anpassen.
 

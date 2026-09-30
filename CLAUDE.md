@@ -73,7 +73,7 @@ privaten Repo `claude-fundament`, lokal unter
   direkt nach seiner Stunde, gilt noch der Kurs davor als zuletzt beendet. Lösung
   gehört hierher: Gast wählt Kurs oder Lehrkraft, oder der laufende Kurs zählt als
   Kandidat. Das PayScale Dashboard hat nur eine Prüfliste als Netz.
-- **Sprache und Ticker hängen an Slug-Präfixen** in `index.html` (`berlin-`, `koeln-`).
-  Bei neuen Städten oder Openings von Hand anpassen.
+- **Sprache und Ticker hängen am Slug** in `index.html`: Englisch nur für `berlin-`,
+  Banner über `TICKER_BANNERS`. Bei neuen Städten oder Openings von Hand anpassen.
 - **Grundtabellen ohne Migration angelegt** (Mai 2026). `supabase/schema.sql` ist
   eine Momentaufnahme, keine Wiederherstellung.
