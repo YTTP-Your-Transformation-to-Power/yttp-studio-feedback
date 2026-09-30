@@ -1,0 +1,12 @@
+-- Die Tabelle questions lieferte Fragen je Studiotyp an die alte
+-- yttp_feedback.html. Die ist seit 29. September 2026 aus dem Repo entfernt,
+-- index.html hat feste Fragen (Check-in, Sauberkeit, Kurs). Kein Projekt liest
+-- die Tabelle, keine View haengt daran.
+--
+-- Inhalt zum Nachlesen, je Typ reformer, matten, functional identisch:
+--   1 Welchen Kurs hast du besucht?
+--   2 Welche/r Trainer/in hat den Kurs geleitet?
+--   3 Hat dir die Anleitung durch den Coach geholfen?
+--   4 Wie war das Tempo des Kurses für dich?
+--   5 Würdest du diesen Kurs weiterempfehlen?
+drop table public.questions;

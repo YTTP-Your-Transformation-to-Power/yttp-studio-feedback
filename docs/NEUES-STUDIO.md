@@ -59,16 +59,24 @@ Testzeile danach in Supabase löschen.
 
 ## 4. QR-Aushang erzeugen
 
+Der Aushang ist das Design "RATE YOUR CLASS! / YOUR FEEDBACK MATTERS" aus dem
+Drive (`03_Studios/QR Codes`), in zwei Varianten: V1 linksbündig und V2 mittig.
+
 ```bash
-pip install qrcode reportlab
-python3 qr/make_qr.py SLUG
+pip install qrcode svglib opencv-python-headless pymupdf
+python3 qr/make_qr.py SLUG Stadt_Standort
 ```
 
-Das PDF landet in `qr/pdf/`. Das Skript bricht ab, wenn der Slug nicht in
-`studios` steht. PDF ins Repo committen, dann drucken.
+`Stadt_Standort` ist der Dateiname wie im Drive, ausgeschrieben und mit Umlauten,
+etwa `Hamburg_Ottensen` oder `Köln_Reformer_Südstadt`. Heraus kommen beide
+Varianten als SVG, PDF und EPS unter `qr/druck/`. Das Skript bricht ab, wenn der
+Slug nicht in `studios` steht, und liest jeden erzeugten Code aus dem PDF zurück.
 
-Nicht über ein Upload-Tool eines Chats in Google Drive laden: das hat Dateien
-mehrfach still beschädigt. Aus dem Repo herunterladen oder lokal erzeugen.
+Danach die sechs Dateien committen und in die gleichnamigen Ordner im Drive
+kopieren (`V1_Linksbündig` beziehungsweise `V2_Mittig`, jeweils `EPS`, `PDF`,
+`Vector`). Nicht über ein Upload-Tool eines Chats hochladen, das hat Dateien
+mehrfach still beschädigt; über den lokalen Drive-Ordner kopieren und die
+Prüfsumme vergleichen.
 
 ## 5. Sprache und Ticker in `index.html`
 

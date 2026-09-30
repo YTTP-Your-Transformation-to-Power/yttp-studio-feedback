@@ -13,14 +13,13 @@ im Management Dashboard (`Management-Dashboard`), beide lesen aus derselben Date
 - Supabase `sjnrqfqjfqpdjhukgiue` (feedback loop studios), Region Frankfurt.
 - Edge Function `attribute-teacher` (Deno), Quelle in `supabase/functions/`.
   Wird **nicht** automatisch deployt.
-- `qr/make_qr.py`: Python, `qrcode` und `reportlab`.
+- `qr/make_qr.py`: Python, `qrcode`, `svglib`, `opencv-python-headless`, `pymupdf`.
 - Kein Railway, keine lokale Arbeitskopie nötig: das Repo ist die Quelle.
 
 ## Befehle
 
 ```bash
-python3 qr/make_qr.py <slug>      # ein Aushang
-python3 qr/make_qr.py --alle      # alle Aushänge neu
+python3 qr/make_qr.py <slug> <Stadt_Standort>   # Aushang V1 und V2, siehe docs/NEUES-STUDIO.md
 ```
 
 ## Das Repo ist öffentlich
@@ -41,7 +40,10 @@ Daraus folgt:
 - `CNAME` löschen oder umbenennen: dann ist `feedback.yttp.de` weg.
 - Die Lehrer-Zuordnung im Browser laufen lassen. bsport-Zugang bleibt in der Edge Function.
 - `feedback.comment` aus dem Projekt herausgeben. Das Management Dashboard bekommt nur `has_comment`.
-- Die Tabellen `bcn_*` anfassen. Sie gehören zum Workshop-Tool Barcelona.
+- Die Tabellen `bcn_*` anfassen. Sie gehören zum Workshop-Tool Barcelona und werden
+  nach dem Workshop (2. Oktober 2026) nach dessen Teardown-Plan gelöscht.
+- Die Spalten `answer_4`, `answer_5` löschen, solange `index.html` sie im Insert
+  mitschickt: zwischengespeicherte alte Seiten würden sonst beim Absenden scheitern.
 
 ## Auslöser: wenn du X tust, lies vorher Y
 

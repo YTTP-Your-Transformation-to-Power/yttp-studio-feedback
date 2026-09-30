@@ -1,5 +1,6 @@
 -- Stand des Feedback-Schemas im Supabase-Projekt "feedback loop studios"
--- (sjnrqfqjfqpdjhukgiue), am 29. September 2026 aus der Datenbank gelesen.
+-- (sjnrqfqjfqpdjhukgiue), am 29. September 2026 aus der Datenbank gelesen,
+-- nachgezogen am 30. September 2026 (questions entfernt).
 --
 -- Das ist eine Momentaufnahme zum Nachlesen, keine Migration zum Ausfuehren.
 -- Die Grundtabellen wurden im Mai 2026 im Supabase-Dashboard angelegt, nicht
@@ -7,7 +8,8 @@
 -- und ab jetzt als Datei unter supabase/migrations/.
 --
 -- Nicht Teil dieses Projekts: die Tabellen bcn_* im selben Supabase-Projekt
--- gehoeren zum Live-Tool des KI-Workshops Barcelona (September 2026).
+-- gehoeren zum Live-Tool des KI-Workshops Barcelona. Sie werden nach dem
+-- Workshop (2. Oktober 2026) geloescht, siehe Teardown-Plan des Workshops.
 
 -- Studios: eine Zeile pro QR-Code. Der Slug steht im gedruckten Code und darf
 -- sich danach nie mehr aendern.
@@ -30,8 +32,8 @@ create table public.feedback (
   answer_1                    text,   -- Check-in
   answer_2                    text,   -- Sauberkeit
   answer_3                    text,   -- Kurs
-  answer_4                    text,   -- ungenutzt
-  answer_5                    text,   -- ungenutzt
+  answer_4                    text,   -- ungenutzt, immer leer; bleibt, weil index.html
+  answer_5                    text,   -- sie noch mit null sendet (siehe CLAUDE.md)
   comment                     text,   -- Freitext, verlaesst dieses Projekt nie
   bsport_teacher_id           integer,
   bsport_class_id             integer,
@@ -39,16 +41,6 @@ create table public.feedback (
   attribution_status          text,   -- matched | no_venue_mapping | no_class_found | bsport_not_configured
                                       -- | auto_corrected_by_name | manually_corrected | confirmed_correct
   bsport_teacher_id_original  integer -- Zuordnung vor einer Korrektur
-);
-
--- Nur noch von der alten yttp_feedback.html genutzt, die aktuelle index.html
--- hat feste Fragen.
-create table public.questions (
-  id          uuid primary key default gen_random_uuid(),
-  studio_type text not null,
-  position    integer not null,
-  label       text not null,
-  active      boolean default true
 );
 
 -- Token-Hashes der Systeme, die export_for_management() aufrufen duerfen.
@@ -60,15 +52,13 @@ create table public.export_clients (
   note         text
 );
 
--- RLS: der Anon Key steht oeffentlich in index.html. Er darf Studios und
--- Fragen lesen und Feedback einfuegen, sonst nichts.
+-- RLS: der Anon Key steht oeffentlich in index.html. Er darf Studios lesen
+-- und Feedback einfuegen, sonst nichts.
 alter table public.studios        enable row level security;
 alter table public.feedback       enable row level security;
-alter table public.questions      enable row level security;
 alter table public.export_clients enable row level security;
 
 create policy "public read studios"    on public.studios   for select using (true);
-create policy "public read questions"  on public.questions for select using (true);
 create policy "public insert feedback" on public.feedback  for insert with check (true);
 -- Bewusst keine SELECT-Policy auf feedback und keine Policy auf export_clients.
 

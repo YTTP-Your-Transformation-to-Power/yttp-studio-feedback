@@ -1,20 +1,30 @@
-"""Erzeugt das A4-Aushang-PDF mit QR-Code fuer ein Studio.
+"""Erzeugt den Aushang "RATE YOUR CLASS!" mit QR-Code fuer ein Studio.
 
 Aufruf aus dem Repo-Stamm:
 
-    python3 qr/make_qr.py koeln-suedstadt-ref
-    python3 qr/make_qr.py --alle
+    python3 qr/make_qr.py hamburg-ottensen-ref Hamburg_Ottensen
 
-Der QR-Code enthaelt nur https://feedback.yttp.de/?studio=<slug>. Stadt,
-Headline und Dateiname werden aus dem Slug abgeleitet, damit alle Aushaenge
-gleich aussehen. Bevor ein PDF entsteht, prueft das Skript gegen die Tabelle
-studios in Supabase, dass der Slug existiert: ein gedruckter QR-Code mit
-falschem Slug fuehrt Gaeste auf "Studio nicht gefunden".
+Erstes Argument ist der Slug, zweites der Dateiname wie im Drive-Ordner
+03_Studios/QR Codes (Stadt_Standort, ausgeschrieben, mit Umlauten).
 
-Abhaengigkeiten: pip install qrcode reportlab
+Heraus kommen beide Varianten des Designs, jeweils als SVG, PDF und EPS:
+
+    qr/druck/V1_Linksbuendig/{Vector,PDF,EPS}/QR_<Name>.*
+    qr/druck/V2_Mittig/{Vector,PDF,EPS}/...
+
+Die Vorlagen unter qr/vorlage/ sind die Illustrator-Dateien aus dem Drive, bei
+denen nur der QR-Code durch einen Platzhalter ersetzt ist. Schrift liegt dort
+als Pfad vor, es wird also keine Schriftdatei gebraucht. Der QR-Code wird mit
+denselben Parametern erzeugt wie in den Vorlagen (Fehlerkorrektur M, kein
+Rand, gleiche Flaeche), sodass alle Aushaenge gleich aussehen.
+
+Vor dem Erzeugen prueft das Skript gegen die Tabelle studios in Supabase, dass
+der Slug existiert. Danach liest es jeden erzeugten QR-Code zurueck und bricht
+ab, wenn nicht exakt die erwartete Adresse drinsteht.
+
+Abhaengigkeiten: pip install qrcode svglib opencv-python-headless pymupdf
 """
 
-import io
 import json
 import re
 import sys
@@ -22,21 +32,20 @@ import urllib.request
 from pathlib import Path
 
 import qrcode
-from reportlab.lib.colors import HexColor
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.utils import ImageReader
-from reportlab.pdfgen import canvas
+from reportlab.graphics import renderPDF, renderPS
+from svglib.svglib import svg2rlg
 
 REPO = Path(__file__).resolve().parent.parent
-OUT_DIR = REPO / "qr" / "pdf"
+TEMPLATES = REPO / "qr" / "vorlage"
+OUT_DIR = REPO / "qr" / "druck"
 FEEDBACK_BASE_URL = "https://feedback.yttp.de/"
 
-PAGE_W, PAGE_H = A4
-
-OFFWHITE = HexColor("#F3F2EE")
-ANTHRAZIT = HexColor("#1C1C1C")
-TAUPE = HexColor("#827B6D")
-GRAY_BORDER = HexColor("#DBDBDB")
+# Flaeche des QR-Codes in der jeweiligen Vorlage (x, y, Kantenlaenge in pt),
+# aus den Illustrator-Dateien uebernommen.
+VARIANTS = {
+    "V1_Linksbuendig": {"template": "V1_linksbuendig.svg", "box": (75.0993, 324.3906, 221.9389), "eps_prefix": ""},
+    "V2_Mittig": {"template": "V2_mittig.svg", "box": (181.3900, 329.4292, 231.9300), "eps_prefix": "YTTP_Studios_DINA4_"},
+}
 
 
 def supabase_config():
@@ -47,124 +56,105 @@ def supabase_config():
     return url, key
 
 
-def load_studios():
-    """Slug zu Name, etwa koeln-suedstadt-ref -> 'YTTP Köln – Südstadt – Reformer'."""
+def load_slugs():
     url, key = supabase_config()
     req = urllib.request.Request(
-        f"{url}/rest/v1/studios?select=slug,name&order=slug.asc",
+        f"{url}/rest/v1/studios?select=slug",
         headers={"apikey": key, "Authorization": f"Bearer {key}"},
     )
     with urllib.request.urlopen(req, timeout=15) as res:
-        return {row["slug"]: row["name"] for row in json.load(res)}
+        return {row["slug"] for row in json.load(res)}
 
 
-def ascii_de(text):
-    for a, b in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("Ä", "Ae"), ("Ö", "Oe"), ("Ü", "Ue"), ("ß", "ss")):
-        text = text.replace(a, b)
-    return text
+def qr_rects(url, box, slug):
+    """QR-Code als Rechtecke, eine Zeile pro zusammenhaengendem Lauf."""
+    q = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=0)
+    q.add_data(url)
+    q.make(fit=True)
+    matrix = q.get_matrix()
+    x0, y0, side = box
+    mod = side / len(matrix)
+    rects = []
+    for r, row in enumerate(matrix):
+        c = 0
+        while c < len(row):
+            if row[c]:
+                start = c
+                while c < len(row) and row[c]:
+                    c += 1
+                rects.append(
+                    f'<rect x="{x0 + start * mod:.4f}" y="{y0 + r * mod:.4f}" '
+                    f'width="{(c - start) * mod:.4f}" height="{mod:.4f}" shape-rendering="crispEdges"/>'
+                )
+            else:
+                c += 1
+    return f'<g id="QR_{slug}">\n    ' + "\n    ".join(rects) + "\n  </g>"
 
 
-def labels(slug, name):
-    """Stadt und Standort kommen aus dem Namen (Schreibweise wie 'BKiez'),
-    das Typkuerzel aus dem Slug ('ref', 'mat'), so wie auf den bisherigen Aushaengen."""
-    name_parts = [p.strip() for p in re.split(r"\s+[–—-]\s+", name)]
-    slug_parts = slug.split("-")
-    if len(name_parts) != 3 or len(slug_parts) < 3:
-        raise ValueError(f"'{slug}' / '{name}' folgt nicht dem Muster 'YTTP Stadt – Standort – Typ'")
-    stadt = ascii_de(re.sub(r"^YTTP\s+", "", name_parts[0]))
-    standort = ascii_de(name_parts[1])
-    typ = "-".join(slug_parts[2:]).capitalize()
-    words = [stadt, standort, typ]
-    title_line = "YTTP " + " - ".join(w.upper() for w in words)
-    filename = "YTTP_" + "_-_".join(words) + ".pdf"
-    return stadt, title_line, filename
+def verify(pdf_path, url):
+    """Liest den QR-Code aus dem fertigen Druck-PDF zurueck."""
+    import cv2
+    import fitz
+    import numpy as np
+
+    # Zwischen den Rechteckzeilen entstehen beim Rastern feine Haarlinien, an
+    # denen der Decoder je nach Aufloesung scheitert. Deshalb mehrere
+    # Aufloesungen, jeweils auch leicht weichgezeichnet. Bestanden ist, wenn
+    # mindestens eine exakt die Adresse liefert und keine etwas anderes.
+    page = fitz.open(pdf_path)[0]
+    found = set()
+    for dpi in (150, 200, 300, 400):
+        pix = page.get_pixmap(dpi=dpi)
+        img = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width, pix.n)[:, :, :3].copy()
+        for candidate in (img, cv2.GaussianBlur(img, (5, 5), 0)):
+            value, _, _ = cv2.QRCodeDetector().detectAndDecode(candidate)
+            if value:
+                found.add(value)
+    if found != {url}:
+        raise SystemExit(f"{pdf_path.name}: QR-Code liefert {sorted(found) or 'nichts'}, erwartet '{url}'")
 
 
-def make_studio_pdf(slug, city_label, title_line, out_path):
-    url = f"{FEEDBACK_BASE_URL}?studio={slug}"
-    qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=6, border=2)
-    qr.add_data(url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-    qr_reader = ImageReader(buf)
+A4_PT = (595.28, 841.89)
 
-    c = canvas.Canvas(str(out_path), pagesize=A4)
 
-    c.setFillColor(OFFWHITE)
-    c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
-
-    top_bar_h = 78.7
-    c.setFillColor(ANTHRAZIT)
-    c.rect(0, PAGE_H - top_bar_h, PAGE_W, top_bar_h, fill=1, stroke=0)
-
-    c.setFillColor(HexColor("#FFFFFF"))
-    c.setFont("Helvetica-Bold", 30)
-    c.drawString(48, PAGE_H - top_bar_h / 2 - 10, "YTTP")
-
-    c.setFont("Helvetica", 15)
-    c.drawRightString(PAGE_W - 48, PAGE_H - top_bar_h / 2 - 6, city_label)
-
-    c.setFillColor(ANTHRAZIT)
-    c.setFont("Helvetica-Bold", 19)
-    headline_y = 700.8
-    c.drawCentredString(PAGE_W / 2, headline_y, title_line)
-
-    c.setStrokeColor(HexColor("#D9D8D3"))
-    c.setLineWidth(0.75)
-    rule_y = headline_y - 21
-    c.line(48, rule_y, PAGE_W - 48, rule_y)
-
-    box_side = 300
-    box_x = (PAGE_W - box_side) / 2
-    box_y = 294.7
-    c.setFillColor(HexColor("#FFFFFF"))
-    c.setStrokeColor(GRAY_BORDER)
-    c.setLineWidth(1)
-    c.rect(box_x, box_y, box_side, box_side, fill=1, stroke=1)
-
-    inset = 16
-    qr_side = box_side - 2 * inset
-    c.drawImage(qr_reader, box_x + inset, box_y + inset, width=qr_side, height=qr_side)
-
-    c.setFillColor(TAUPE)
-    c.setFont("Helvetica", 10.5)
-    c.drawCentredString(PAGE_W / 2, 268.3, url)
-
-    c.setFillColor(ANTHRAZIT)
-    c.setFont("Helvetica", 13)
-    c.drawCentredString(PAGE_W / 2, 237, "Scanne den Code nach deiner Session und gib uns dein anonymes Feedback.")
-
-    bottom_bar_h = 39.8
-    c.setFillColor(ANTHRAZIT)
-    c.rect(0, 0, PAGE_W, bottom_bar_h, fill=1, stroke=0)
-    c.setFillColor(HexColor("#9A9A9A"))
-    c.setFont("Helvetica", 9)
-    c.drawCentredString(PAGE_W / 2, bottom_bar_h / 2 - 3, "feedback.yttp.de")
-
-    c.showPage()
-    c.save()
+def a4_drawing(svg_path):
+    """svglib liest die Vorlage ohne width/height als Pixel und verkleinert sie
+    um 0,75. Zurueck auf DIN A4 in Punkt skalieren, wie die Originale."""
+    drawing = svg2rlg(str(svg_path))
+    factor = A4_PT[0] / drawing.width
+    drawing.scale(factor, factor)
+    drawing.width, drawing.height = drawing.width * factor, drawing.height * factor
+    return drawing
 
 
 def main(argv):
-    if len(argv) != 1:
+    if len(argv) != 2:
         print(__doc__)
         return 1
+    slug, name = argv
 
-    known = load_studios()
-    slugs = list(known) if argv[0] == "--alle" else [argv[0]]
+    if slug not in load_slugs():
+        print(f"Slug '{slug}' steht nicht in der Tabelle studios. Erst dort anlegen, dann drucken.")
+        return 1
 
-    for slug in slugs:
-        if slug not in known:
-            print(f"Slug '{slug}' steht nicht in der Tabelle studios. Erst dort anlegen, dann drucken.")
-            return 1
-        city_label, title_line, filename = labels(slug, known[slug])
-        OUT_DIR.mkdir(parents=True, exist_ok=True)
-        out_path = OUT_DIR / filename
-        make_studio_pdf(slug, city_label, title_line, out_path)
-        print(f"{slug} -> {out_path.relative_to(REPO)}")
+    url = f"{FEEDBACK_BASE_URL}?studio={slug}"
+    for variant, cfg in VARIANTS.items():
+        template = (TEMPLATES / cfg["template"]).read_text(encoding="utf-8")
+        svg = template.replace("<!--QR-->", qr_rects(url, cfg["box"], slug))
+
+        base = OUT_DIR / variant
+        for sub in ("Vector", "PDF", "EPS"):
+            (base / sub).mkdir(parents=True, exist_ok=True)
+        svg_path = base / "Vector" / f"QR_{name}.svg"
+        svg_path.write_text(svg, encoding="utf-8")
+
+        drawing = a4_drawing(svg_path)
+        pdf_path = base / "PDF" / f"QR_{name}.pdf"
+        renderPDF.drawToFile(drawing, str(pdf_path))
+        renderPS.drawToFile(drawing, str(base / "EPS" / f"{cfg['eps_prefix']}QR_{name}.eps"))
+
+        verify(pdf_path, url)
+        print(f"{variant}: QR_{name} -> {url} (geprueft)")
     return 0
 
 

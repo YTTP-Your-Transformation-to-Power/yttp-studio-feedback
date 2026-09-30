@@ -25,8 +25,10 @@ Gelesen von:  PayScale Dashboard (Service Key, inkl. Kommentare)
 |---|---|
 | `index.html` | Das Formular. Einzige Seite, die Gäste sehen. |
 | `CNAME` | Custom Domain für GitHub Pages. Nicht löschen. |
-| `qr/make_qr.py` | Erzeugt das A4-Aushang-PDF pro Studio. |
-| `qr/pdf/` | Die gedruckten Aushänge, einer pro Studio. |
+| `qr/make_qr.py` | Erzeugt den Aushang "RATE YOUR CLASS!" pro Studio. |
+| `qr/vorlage/` | Die Illustrator-Vorlagen V1 und V2, QR-Code als Platzhalter. |
+| `qr/druck/` | **Die Druckdateien**, pro Studio V1 und V2 als SVG, PDF, EPS. Gleicher Stand wie `03_Studios/QR Codes` im Drive. |
+| `qr/pdf/` | Ältere interne Fassung aus dem Juni (dunkler Kopf, Studioname). Nicht der Aushang im Studio. |
 | `supabase/functions/attribute-teacher/` | Quelle der Edge Function zur Lehrer-Zuordnung. |
 | `supabase/schema.sql` | Stand der Tabellen, Policies und Views zum Nachlesen. |
 | `supabase/migrations/` | Schemaänderungen ab 29. September 2026. |
