@@ -79,3 +79,18 @@ privaten Repo `claude-fundament`, lokal unter
   Banner über `TICKER_BANNERS`. Bei neuen Städten oder Openings von Hand anpassen.
 - **Grundtabellen ohne Migration angelegt** (Mai 2026). `supabase/schema.sql` ist
   eine Momentaufnahme, keine Wiederherstellung.
+
+## Offene Punkte der Openings Herbst 2026
+
+Angelegt am 6. Oktober 2026. Erledigtes streichen, nicht stehen lassen.
+
+| Studio | Opening | Google Link | Venue ID | Banner raus |
+|---|---|---|---|---|
+| `berlin-backfabrik-ref` | 14. November 2026 | offen | offen | steht in keinem Banner |
+| `hamburg-ottensen-ref` | 21. November 2026 | offen | 22790 | Eintrag für `hamburg-nstadt-ref` entfernen |
+| `berlin-kudamm-strength` | 28. November 2026 | offen | offen | Eintrag `berlin-` entfernen |
+| `koeln-ehrenfeld-ref` | 5. Dezember 2026 | offen | offen | Eintrag `koeln-` entfernen |
+| `koeln-ehrenfeld-strength` | 5. Dezember 2026 | offen | offen | Eintrag `koeln-` entfernen |
+
+Bis zur Eröffnung zeigen die Seiten von Kudamm und Ehrenfeld ihren eigenen Banner,
+weil er an der ganzen Stadt hängt. Das ist vor dem Opening hingenommen.
