@@ -82,15 +82,15 @@ privaten Repo `claude-fundament`, lokal unter
 
 ## Offene Punkte der Openings Herbst 2026
 
-Angelegt am 6. Oktober 2026. Erledigtes streichen, nicht stehen lassen.
+Google Links und Venue IDs sind seit 29. Oktober 2026 für alle fünf eingetragen und
+per Testbewertung geprüft. Offen ist nur noch der Banner, jeweils zur Eröffnung:
 
-| Studio | Opening | Google Link | Venue ID | Banner raus |
-|---|---|---|---|---|
-| `berlin-backfabrik-ref` | 14. November 2026 | offen | offen | steht in keinem Banner |
-| `hamburg-ottensen-ref` | 21. November 2026 | offen | 22790 | Eintrag für `hamburg-nstadt-ref` entfernen |
-| `berlin-kudamm-strength` | 28. November 2026 | offen | offen | Eintrag `berlin-` entfernen |
-| `koeln-ehrenfeld-ref` | 5. Dezember 2026 | offen | offen | Eintrag `koeln-` entfernen |
-| `koeln-ehrenfeld-strength` | 5. Dezember 2026 | offen | offen | Eintrag `koeln-` entfernen |
+| Studio | Opening | Banner raus |
+|---|---|---|
+| `berlin-backfabrik-ref` | 14. November 2026 | steht in keinem Banner, nichts zu tun |
+| `hamburg-ottensen-ref` | 21. November 2026 | Eintrag für `hamburg-nstadt-ref` entfernen |
+| `berlin-kudamm-strength` | 28. November 2026 | Eintrag `berlin-` entfernen |
+| `koeln-ehrenfeld-ref`, `koeln-ehrenfeld-strength` | 5. Dezember 2026 | Eintrag `koeln-` entfernen |
 
 Bis zur Eröffnung zeigen die Seiten von Kudamm und Ehrenfeld ihren eigenen Banner,
 weil er an der ganzen Stadt hängt. Das ist vor dem Opening hingenommen.
